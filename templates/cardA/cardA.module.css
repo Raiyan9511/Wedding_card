@@ -1,0 +1,233 @@
+/* Card A — Ivory & Gold Royal. Scoped (CSS module) so nothing leaks into other cards. */
+
+.root {
+  --ivory: #fbf6ec;
+  --cream: #f3e8d2;
+  --gold: #b8893b;
+  --gold-light: color-mix(in srgb, var(--gold) 45%, #fff6d8);
+  --gold-deep: color-mix(in srgb, var(--gold) 70%, #3d2a10);
+  --ink: #4a3522;
+  --muted: #86705a;
+  --seal: #7a1f2b;
+  --foil: linear-gradient(
+    105deg,
+    var(--gold-deep) 0%,
+    var(--gold) 22%,
+    var(--gold-light) 40%,
+    #fffbe9 50%,
+    var(--gold-light) 60%,
+    var(--gold) 78%,
+    var(--gold-deep) 100%
+  );
+  --canvas: #e6dcd0; /* sampled from the envelope video border — page colour around the card */
+  min-height: 100dvh;
+  background: var(--canvas);
+  color: var(--ink);
+  overflow-x: clip;
+}
+
+/* Layout shell: full width on phones; a phone-sized card centred on the canvas above 640px.
+   It carries the ONE page background (sections are transparent → no seams) and is the only
+   thing that crops the corner flowers, i.e. at the screen/card edge. */
+.shell {
+  margin-inline: auto;
+  overflow: clip;
+}
+
+@media (min-width: 640px) {
+  .shell {
+    max-width: 480px;
+    box-shadow: 0 0 60px rgb(120 85 40 / 0.14);
+  }
+}
+
+.root :focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* Embossed damask: each motif drawn twice — white highlight up-left, tan shadow down-right. */
+.shell {
+  background-color: var(--ivory);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'><defs><g id='m'><path d='M48 26c7 9 7 16 0 22c-7-6-7-13 0-22z'/><path d='M48 70c7-9 7-16 0-22c-7 6-7 13 0 22z'/><path d='M26 48c9-7 16-7 22 0c-6 7-13 7-22 0z'/><path d='M70 48c-9-7-16-7-22 0c6 7 13 7 22 0z'/><circle cx='48' cy='48' r='3'/><path d='M34 34l-9-9M62 34l9-9M34 62l-9 9M62 62l9 9'/><circle cx='0' cy='0' r='6'/><circle cx='96' cy='0' r='6'/><circle cx='0' cy='96' r='6'/><circle cx='96' cy='96' r='6'/></g></defs><g fill='none' stroke-width='1.1'><use href='%23m' stroke='%23ffffff' transform='translate(-.7 -.7)'/><use href='%23m' stroke='%23d6c197' stroke-opacity='.75' transform='translate(.7 .7)'/></g></svg>");
+  background-size: 96px 96px;
+}
+
+/* Text sits on ivory, so its foil stays in the mid/deep golds (the bright stops would vanish). */
+.foilText {
+  background: linear-gradient(
+    105deg,
+    var(--gold-deep) 0%,
+    var(--gold) 30%,
+    color-mix(in srgb, var(--gold) 75%, #fff2c8) 50%,
+    var(--gold) 70%,
+    var(--gold-deep) 100%
+  );
+  background-size: 250% 100%;
+  background-position: 30% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Static foil. (Phase 3 animated this on ~30 elements: background-position repaints every
+   frame on the main thread and the 6s drift was barely visible — removed.) */
+.foil {
+  background: var(--foil);
+  background-size: 250% 100%;
+  background-position: 30% 0;
+}
+
+/* Moving shimmer — hero names only (paused with the rest of the hero, see .paused). */
+.shimmer { animation: shimmer 5s ease-in-out infinite alternate; }
+
+@keyframes shimmer {
+  from { background-position: 0% 0; }
+  to { background-position: 100% 0; }
+}
+
+/* Thin double gold rule used on cards and frames */
+.frame {
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
+  outline-offset: 5px;
+}
+
+/* ---------- Envelope (video) ---------- */
+/* Container for cqw units; edges fade into --canvas so the card and page read as one surface. */
+.envelopeCard {
+  container-type: inline-size;
+  mask-image: linear-gradient(180deg, transparent 0, #000 2.5%, #000 97.5%, transparent 100%);
+}
+
+@media (min-width: 640px) {
+  .envelopeCard {
+    mask-image:
+      linear-gradient(180deg, transparent 0, #000 2.5%, #000 97.5%, transparent 100%),
+      linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%);
+    mask-composite: intersect;
+  }
+}
+
+/* Gold monogram pressed into the blank wax: foil gradient, dark lip above, light catch below. */
+.sealMark {
+  font-size: 9.5cqw;
+  line-height: 1;
+  /* Solid gold, not a background-clip:text gradient — that trick left the "S" hollow in some browsers. */
+  color: #9c7127;
+  -webkit-text-stroke: 0.3px #7f5a1b; /* firms up the thin script strokes */
+  /* Pressed into the wax: dark lip above, light catch below. */
+  text-shadow: 0 -1px 0 rgb(90 60 15 / 0.45), 0 1px 0 rgb(255 250 236 / 0.9);
+}
+
+.pulse { animation: pulse 2.2s ease-in-out infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.97); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+/* ---------- Hero ---------- */
+/* `alternate` = zoom in then back out along the same curve, so the loop never jumps. */
+.kenBurns {
+  animation: kenBurns 26s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes kenBurns {
+  from { transform: scale(1); }
+  to { transform: scale(1.16) translate(-1.5%, -1%); }
+}
+
+.petal {
+  position: absolute;
+  top: -6%;
+  animation: fall var(--dur) linear var(--delay) infinite;
+  pointer-events: none;
+}
+
+.petal > svg { animation: sway calc(var(--dur) / 3) ease-in-out var(--delay) infinite alternate; }
+
+@keyframes fall {
+  from { transform: translateY(0); }
+  to { transform: translateY(112svh); }
+}
+
+@keyframes sway {
+  from { transform: translateX(-28px) rotate(-30deg); }
+  to { transform: translateX(28px) rotate(45deg); }
+}
+
+.bounce { animation: bounce 1.8s ease-in-out infinite; }
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50% { transform: translateY(8px); opacity: 1; }
+}
+
+/* Warm cream wash behind the hero text (upper screen) + a soft fade into the page below. */
+.heroScrim {
+  background:
+    radial-gradient(ellipse 90% 55% at 50% 22%, rgb(251 246 236 / 0.78) 0%, rgb(251 246 236 / 0.5) 45%, transparent 75%),
+    linear-gradient(180deg, rgb(74 53 34 / 0.18) 0%, transparent 18%);
+}
+
+/* The hero's bottom ~100px dissolves into the page background (mask, not a solid colour fill). */
+.heroFade { mask-image: linear-gradient(180deg, #000 calc(100% - 110px), transparent 100%); }
+
+/* Halo so the hero text stays readable on any video frame. */
+.heroText { text-shadow: 0 1px 1px rgb(255 250 238 / 0.9), 0 0 18px rgb(251 246 236 / 0.95), 0 0 42px rgb(251 246 236 / 0.8); }
+
+/* Hero off-screen, tab hidden, or envelope still closed → freeze its loops. */
+.paused .petal,
+.paused .petal > svg,
+.paused .kenBurns,
+.paused .shimmer,
+.paused .bounce { animation-play-state: paused; }
+
+/* ---------- Painted flowers ---------- */
+/* Fixed at its corner; the only motion is a slow vertical bob (translateY only — compositor-cheap). */
+.bob {
+  animation: flowerBob var(--dur) ease-in-out var(--phase) infinite;
+  will-change: transform;
+}
+
+.bob > img { filter: drop-shadow(0 8px 14px rgb(120 85 40 / 0.16)); }
+
+@keyframes flowerBob {
+  0%, 100% { transform: translateY(-6px); }
+  50% { transform: translateY(6px); }
+}
+
+/* Event illustrations bob gently once revealed. */
+.float { animation: float 5.5s ease-in-out infinite alternate; }
+
+@keyframes float {
+  from { transform: translateY(-3px); }
+  to { transform: translateY(3px); }
+}
+
+/* ---------- Music button bars ---------- */
+/* scaleY instead of height: no layout per frame. */
+.bars > i {
+  width: 2px;
+  height: 14px;
+  background: currentColor;
+  transform-origin: bottom;
+  animation: bar 0.9s ease-in-out infinite alternate;
+}
+.bars > i:nth-child(2) { animation-delay: -0.3s; }
+.bars > i:nth-child(3) { animation-delay: -0.6s; }
+
+@keyframes bar {
+  from { transform: scaleY(0.3); }
+  to { transform: scaleY(1); }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .petal { display: none; }
+  /* Flower bob + icon float stay on: a few px, very slow — part of the look, like the videos. */
+  .kenBurns, .shimmer, .pulse, .bounce, .bars > i { animation: none; }
+  .pulse { opacity: 1; }
+}

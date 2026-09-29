@@ -1,0 +1,114 @@
+/* Card C — Pastel Garden. Scoped (CSS module): nothing leaks into other cards. */
+
+.root {
+  --sage: #8fa98a;
+  --sage-deep: #5f7c5c;
+  --sage-soft: #e3ebdd;
+  --blush: #f6dcd6;
+  --rose: #c77f84;
+  --cream: #fdf8f1;
+  --peach: #f8dcc6;
+  --lilac: #ddd0e8;
+  --ink: #4e4a44;
+  --muted: #8b857b;
+  background: var(--cream);
+  color: var(--ink);
+  font-variation-settings: "SOFT" 100;
+  overflow-x: clip;
+}
+
+.root :focus-visible {
+  outline: 2px solid var(--sage-deep);
+  outline-offset: 3px;
+}
+
+/* Soft watercolour washes on paper (static gradients — no filters, no repaint cost). */
+.cream {
+  --base: var(--cream);
+  background-color: var(--base);
+  background-image:
+    radial-gradient(ellipse 60% 40% at 8% 12%, color-mix(in srgb, var(--blush) 55%, transparent), transparent 70%),
+    radial-gradient(ellipse 50% 35% at 95% 85%, color-mix(in srgb, var(--sage-soft) 80%, transparent), transparent 70%);
+}
+.blushWash {
+  --base: color-mix(in srgb, var(--blush) 45%, var(--cream));
+  background-color: var(--base);
+  background-image:
+    radial-gradient(ellipse 55% 40% at 90% 10%, color-mix(in srgb, var(--peach) 60%, transparent), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 5% 90%, color-mix(in srgb, var(--lilac) 45%, transparent), transparent 70%);
+}
+.sageWash {
+  --base: color-mix(in srgb, var(--sage-soft) 70%, var(--cream));
+  background-color: var(--base);
+  background-image:
+    radial-gradient(ellipse 55% 40% at 10% 15%, rgb(255 255 255 / 0.6), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 92% 88%, color-mix(in srgb, var(--blush) 50%, transparent), transparent 70%);
+}
+
+/* Watercolour wipe: colour bleeds in left → right (--w: 0% → 100%). Without JS / with
+   reduced motion --w is never set, the clip-path is invalid → none → fully visible. */
+.wash {
+  clip-path: inset(-20% calc(100% - var(--w)) -20% 0 round 999px);
+}
+
+/* ---------- Butterflies: outer layer drifts, inner layer flaps (both transform-only) ---------- */
+.flap {
+  animation: flap 0.38s ease-in-out infinite alternate;
+}
+@keyframes flap {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0.45); }
+}
+.drift {
+  animation: drift var(--d, 16s) ease-in-out var(--delay, 0s) infinite;
+  will-change: transform;
+}
+@keyframes drift {
+  0% { transform: translate(0, 0) rotate(-8deg); }
+  25% { transform: translate(28px, -46px) rotate(6deg); }
+  50% { transform: translate(-12px, -92px) rotate(-4deg); }
+  75% { transform: translate(-40px, -40px) rotate(8deg); }
+  100% { transform: translate(0, 0) rotate(-8deg); }
+}
+
+/* ---------- Hero ---------- */
+.bob { animation: bob 5s ease-in-out infinite alternate; }
+.bobLate { animation: bob 5s ease-in-out -2.5s infinite alternate; }
+@keyframes bob {
+  from { transform: translateY(0); }
+  to { transform: translateY(-5px); }
+}
+.breathe { animation: breathe 14s ease-in-out infinite alternate; will-change: transform; }
+@keyframes breathe {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
+.ripple { animation: ripple 4s ease-in-out infinite alternate; transform-origin: center; }
+@keyframes ripple {
+  from { transform: scaleX(0.94); opacity: 0.5; }
+  to { transform: scaleX(1.06); opacity: 0.9; }
+}
+
+.paused .flap, .paused .drift, .paused .bob, .paused .bobLate, .paused .breathe, .paused .ripple {
+  animation-play-state: paused;
+}
+
+/* ---------- Intro ---------- */
+.stage { transform-style: preserve-3d; }
+.flapFace {
+  backface-visibility: visible;
+  will-change: transform;
+}
+.hint { animation: hint 2.6s ease-in-out infinite; }
+@keyframes hint {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+/* ---------- Music (a flower that turns while playing) ---------- */
+.spin { animation: spin 9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .flap, .drift, .bob, .bobLate, .breathe, .ripple, .hint, .spin { animation: none; }
+}
